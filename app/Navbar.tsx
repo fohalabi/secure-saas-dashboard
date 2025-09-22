@@ -122,9 +122,12 @@ const Navbar: React.FC<NavbarProps> = ({
             </Button>
 
             {/* Center: Page Title */}
-            <span className="text-lg font-semibold text-gray-900 dark:text-white">
-              {pageTitle}
-            </span>
+            <div className='flex items-center space-x-4'>
+              <Layers />
+              <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                {pageTitle}
+              </span>
+            </div> 
 
             {/* Right: User Avatar Dropdown */}
             <DropdownMenu>
