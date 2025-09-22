@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
-import { Layers, Bell, Sun, Moon, ArrowRight, ArrowLeft, User, Settings, LogOut } from 'lucide-react';
+import { Layers, Bell, ArrowRight, ArrowLeft, User, Settings, LogOut } from 'lucide-react';
+import { ModeToggle } from '@/components/ModeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +16,6 @@ interface NavbarProps {
   userEmail?: string;
   onSidebarToggle?: () => void;
   isSidebarOpen?: boolean;
-  onThemeToggle?: () => void;
-  isDarkMode?: boolean;
   onNotificationClick?: () => void;
   onProfileClick?: () => void;
   onSettingsClick?: () => void;
@@ -28,8 +27,6 @@ const Navbar: React.FC<NavbarProps> = ({
   userEmail = 'user@example.com',
   onSidebarToggle,
   isSidebarOpen = false,
-  onThemeToggle,
-  isDarkMode = false,
   onNotificationClick,
   onProfileClick,
   onSettingsClick,
@@ -54,11 +51,11 @@ const Navbar: React.FC<NavbarProps> = ({
             <div className="flex space-x-5 items-center">
               <Link 
                 href='/'
-                className='h-6 w-6 flex items-center justify-center'
+                className='h-5 w-5 flex items-center justify-center'
               >
-                <Layers className='h-6 w-6'/>
+                <Layers className='h-5 w-5'/>
               </Link>
-              <span className="text-xl font-semibold text-gray-900 dark:text-white">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {pageTitle}
               </span>
             </div>
@@ -77,18 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({
               </Button>
 
               {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onThemeToggle}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                {isDarkMode ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              <ModeToggle />
 
               {/* User Avatar Dropdown */}
               <DropdownMenu>
