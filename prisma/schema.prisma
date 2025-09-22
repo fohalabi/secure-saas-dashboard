@@ -1,0 +1,189 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // WebAuthn credentials (passkeys)
+  credentials Credential[]
+  
+  // Sessions
+  sessions Session[]
+  
+  // Team memberships
+  teamMemberships TeamMember[]
+  
+  // Audit logs (actions performed by this user)
+  auditLogs AuditLog[]
+  
+  // Last login tracking
+  lastLoginAt DateTime?
+  lastLoginIp String?
+  
+  // Account status
+  isActive Boolean @default(true)
+  
+  @@map("users")
+}
+
+// WebAuthn credentials (passkeys, security keys, etc.)
+model Credential {
+  id                String   @id @default(cuid())
+  userId            String
+  credentialId      String   @unique // WebAuthn credential ID
+  publicKey         Bytes    // Public key for verification
+  counter           BigInt   @default(0) // Signature counter
+  transports        String[] // Transport methods (usb, nfc, ble, internal)
+  
+  // Metadata
+  name              String?  // User-defined name for the credential
+  deviceType        String?  // Device type (platform, cross-platform)
+  createdAt         DateTime @default(now())
+  lastUsedAt        DateTime?
+  
+  // Backup eligibility and status
+  backupEligible    Boolean  @default(false)
+  backupState       Boolean  @default(false)
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("credentials")
+}
+
+// User sessions
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique // Session token (hashed)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  // Session metadata
+  ipAddress    String?
+  userAgent    String?
+  deviceInfo   Json?    // Parsed device information
+  
+  // Security flags
+  isActive     Boolean @default(true)
+  revokedAt    DateTime?
+  revokedBy    String? // User ID who revoked (for admin revocation)
+  
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+// Teams/Organizations
+model Team {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  avatar      String?
+  
+  // Plan and billing
+  planType    String   @default("free") // free, pro, enterprise
+  billingEmail String?
+  
+  // Team settings
+  settings    Json     @default("{}")
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  members     TeamMember[]
+  auditLogs   AuditLog[]
+  
+  @@map("teams")
+}
+
+// Team membership with RBAC
+model TeamMember {
+  id       String @id @default(cuid())
+  teamId   String
+  userId   String
+  role     TeamRole @default(MEMBER)
+  
+  // Permissions override (JSON object for granular control)
+  permissions Json @default("{}")
+  
+  // Invitation tracking
+  invitedBy   String?
+  invitedAt   DateTime?
+  joinedAt    DateTime @default(now())
+  
+  // Status
+  isActive    Boolean @default(true)
+  
+  // Relations
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+// Team roles enum
+enum TeamRole {
+  OWNER     // Full access, can delete team
+  ADMIN     // Manage team, members, billing
+  MEMBER    // Basic access to team resources
+  VIEWER    // Read-only access
+}
+
+// Comprehensive audit logging
+model AuditLog {
+  id        String   @id @default(cuid())
+  
+  // Who, what, when, where
+  userId    String?  // Null for system events
+  teamId    String?  // Team context (if applicable)
+  action    String   // Action performed (e.g., 'user.login', 'team.create')
+  resource  String?  // Resource affected (e.g., 'user:123', 'team:456')
+  
+  // Event details
+  metadata  Json     @default("{}") // Additional context
+  
+  // Request context
+  ipAddress String?
+  userAgent String?
+  
+  // Result
+  success   Boolean  @default(true)
+  errorMessage String?
+  
+  // Timestamp
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  team Team? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([teamId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
