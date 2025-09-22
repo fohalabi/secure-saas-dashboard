@@ -33,6 +33,9 @@ model User {
   
   // Audit logs (actions performed by this user)
   auditLogs AuditLog[]
+
+  // Auth challenges  <-- Add this
+  authChallenges AuthChallenge[]
   
   // Last login tracking
   lastLoginAt DateTime?
@@ -186,4 +189,23 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+model AuthChallenge {
+  id        String   @id @default(cuid())
+  challenge String   @unique
+  userId    String?  // Null for registration challenges
+  type      ChallengeType
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  options   Json     @default("{}")
+  
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@map("auth_challenges")
+}
+
+enum ChallengeType {
+  REGISTRATION
+  AUTHENTICATION
 }
