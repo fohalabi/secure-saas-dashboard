@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const navigationItems = [
     {
       name: 'Dashboard',
-      href: '/',
+      href: '/dashboard',
       icon: LayoutDashboard,
     },
     {
