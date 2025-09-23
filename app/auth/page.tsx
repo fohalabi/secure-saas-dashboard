@@ -166,7 +166,15 @@ function LoginForm() {
       const challenge = await challengeResponse.json();
 
       // Step 2: Start WebAuthn authentication
-      const credential = await startAuthentication(challenge);
+      const credential = await Promise.race([
+        startAuthentication({
+            ...challenge,
+            allowCredentials: challenge.allowCredentials || []
+        }),
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Authentication timeout')), 60000)
+        )
+      ]);
 
       // Step 3: Verify authentication
       const verificationResponse = await fetch('/api/auth/login/verify', {

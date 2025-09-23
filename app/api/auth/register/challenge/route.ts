@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         const options = await generateRegistrationOptions({
             rpName: process.env.WEBAUTHN_RP_NAME || 'SaaS Dashboard',
             rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
-            userID: email, // Use email as user ID for now
+            userID: new TextEncoder().encode(email), // Use email as user ID for now
             userName: email,
             userDisplayName: name,
             timeout: 60000, // 1 minute
