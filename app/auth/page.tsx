@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import { Shield, User, Mail, Fingerprint, Smartphone, AlertCircle } from 'lucide-react';
+import { Shield, User, Mail, Fingerprint, Smartphone, AlertCircle, Layers } from 'lucide-react';
 
 // Register Form Component
 function RegisterForm() {
@@ -166,15 +166,7 @@ function LoginForm() {
       const challenge = await challengeResponse.json();
 
       // Step 2: Start WebAuthn authentication
-      const credential = await Promise.race([
-        startAuthentication({
-            ...challenge,
-            allowCredentials: challenge.allowCredentials || []
-        }),
-        new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Authentication timeout')), 60000)
-        )
-      ]);
+      const credential = await startAuthentication(challenge);
 
       // Step 3: Verify authentication
       const verificationResponse = await fetch('/api/auth/login/verify', {
@@ -249,8 +241,8 @@ export default function AuthPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-xl">S</span>
+          <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center mx-auto mb-4">
+            <Layers className='h-8 w-8' />
           </div>
           <h2 className="text-3xl font-bold text-gray-900">
             {isLogin ? 'Welcome back' : 'Create your account'}
