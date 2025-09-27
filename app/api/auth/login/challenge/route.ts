@@ -21,6 +21,15 @@ export async function POST(request: NextRequest) {
         console.log('User credentials count:', user?.credentials.length || 0)
 
         if (user?.credentials.length) {
+            console.log('Raw credentials from DB:', user.credentials.map(c => ({
+                id: c.id,
+                credentialId: c.credentialId,
+                transports: c.transports,
+                createdAt: c.createdAt
+            })))
+        }
+
+        if (user?.credentials.length) {
             console.log('Credentials:', user.credentials.map(c => ({
                 id: c.id,
                 credentialId: c.credentialId.substring(0, 20) + '...',

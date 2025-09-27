@@ -1,4 +1,3 @@
-// File: app/auth/page.tsx
 'use client'
 
 import React, { useState } from 'react';

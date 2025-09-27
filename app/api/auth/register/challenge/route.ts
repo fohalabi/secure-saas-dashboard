@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
 
         // Generate registration options
         const options = await generateRegistrationOptions({
-            rpName: process.env.WEBAUTHN_RP_NAME || 'SaaS Dashboard',
-            rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
+            rpName: 'SaaS Dashboard',
+            rpID: 'localhost',
             userID: new TextEncoder().encode(email), // Use email as user ID for now
             userName: email,
             userDisplayName: name,
@@ -36,8 +36,9 @@ export async function POST(request: NextRequest) {
             attestationType: 'none',
             excludeCredentials: [], // No existing credentials to exclude
             authenticatorSelection: {
-                residentKey: 'preferred',
-                userVerification: 'preferred',
+                authenticatorAttachment: 'platform',
+                residentKey: 'required',
+                userVerification: 'required',
             },
             supportedAlgorithmIDs: [-7, -257], //ES256 and RS356
         })

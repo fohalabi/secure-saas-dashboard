@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
             credentialId: Buffer.from(id).toString('base64'),
             publicKey: Buffer.from(publicKey),
             counter: BigInt(counter),
-            transports: credential.response.transports || [],
+            transports: ['internal', 'hybrid'],
             name: `${name}'s Passkey`,
             deviceType: credential.authenticatorAttachment === 'platform' ? 'platform' : 'cross-platform',
             backupEligible: registrationInfo.credentialBackedUp || false,
@@ -106,6 +106,8 @@ export async function POST(request: NextRequest) {
 
     // Create session
     const session = await createSession(result.user.id, request)
+    console.log('Session created:', session.token ? 'YES' : 'NO');
+    console.log('Cookie being set:', session.token.substring(0, 20) + '...');
 
     // Log registration
     await db.auditLog.create({
@@ -131,18 +133,45 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Set session cookie
-    response.cookies.set('session', session.token, {
+    console.log('Setting session cookie:', session.token ? 'Token exists' : 'No token')
+    console.log('Cookie value preview:', session.token.substring(0, 20) + '...')
+
+    // Set session cookie with explicit options
+    response.cookies.set({
+      name: 'session',
+      value: session.token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Set to false for localhost
       sameSite: 'lax',
-      maxAge: 90 * 24 * 60 * 60, // 90 days
+      maxAge: 90 * 24 * 60 * 60,
       path: '/',
     })
 
+    console.log('Cookie set in response')
+
     return response
   } catch (error) {
-    console.error('Registration verification error:', error)
+    console.error('=== REGISTRATION ERROR (PERSISTENT) ===');
+    console.error('Error details:', error);
+    console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+    console.error('=== END ERROR LOG ===');
+    
+    // Also log to a file or database for persistence
+    await db.auditLog.create({
+      data: {
+        action: 'user.register.failed',
+        success: false,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        metadata: {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : null
+        }
+      }
+    }).catch(() => {
+      // Ignore audit log failures
+    });
+
     return NextResponse.json(
       { error: 'Registration failed' },
       { status: 500 }
