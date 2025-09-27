@@ -11,7 +11,7 @@ function RegisterForm() {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
+  // const [success, setSuccess] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,11 +51,14 @@ function RegisterForm() {
         throw new Error(error.error || 'Registration failed');
       }
 
-      setSuccess(true);
-      // Redirect to dashboard
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 1500);
+      // setSuccess(true);
+      // // Redirect to dashboard
+      // setTimeout(() => {
+      //   window.location.href = '/dashboard';
+      // }, 1500);
+      // Redirect immediately to dashboard
+      window.location.href = '/dashboard';
+
     } catch (err: unknown) {
       console.error('Registration error:', err);
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
@@ -64,17 +67,17 @@ function RegisterForm() {
     }
   };
 
-  if (success) {
-    return (
-      <div className="text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Shield className="w-8 h-8 text-green-600" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Registration Successful!</h3>
-        <p className="text-gray-600">Your passkey has been created. Redirecting...</p>
-      </div>
-    );
-  }
+  // if (success) {
+  //   return (
+  //     <div className="text-center">
+  //       <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+  //         <Shield className="w-8 h-8 text-green-600" />
+  //       </div>
+  //       <h3 className="text-lg font-semibold text-gray-900 mb-2">Registration Successful!</h3>
+  //       <p className="text-gray-600">Your passkey has been created. Redirecting...</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <form onSubmit={handleRegister} className="space-y-4">
@@ -164,6 +167,7 @@ function LoginForm() {
       }
 
       const challenge = await challengeResponse.json();
+      console.log('Challenge received:', challenge);
 
       // Step 2: Start WebAuthn authentication
       const credential = await startAuthentication(challenge);
