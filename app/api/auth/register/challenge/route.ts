@@ -27,21 +27,21 @@ export async function POST(request: NextRequest) {
 
         // Generate registration options
         const options = await generateRegistrationOptions({
-            rpName: 'SaaS Dashboard',
-            rpID: 'localhost',
-            userID: new TextEncoder().encode(email), // Use email as user ID for now
+            rpName: process.env.WEBAUTHN_RP_NAME || 'SaaS Dashboard',
+            rpID: process.env.WEBAUTHN_RP_ID || 'localhost',
+            userID: new TextEncoder().encode(email),
             userName: email,
             userDisplayName: name,
-            timeout: 60000, // 1 minute
+            timeout: 60000,
             attestationType: 'none',
-            excludeCredentials: [], // No existing credentials to exclude
+            excludeCredentials: [], // This must be an empty array, not undefined
             authenticatorSelection: {
                 authenticatorAttachment: 'platform',
-                residentKey: 'required',
                 userVerification: 'required',
+                residentKey: 'required',
             },
-            supportedAlgorithmIDs: [-7, -257], //ES256 and RS356
-        })
+            supportedAlgorithmIDs: [-7, -257],
+        });
 
         // Store challenge in database for verification
         await db.authChallenge.create({

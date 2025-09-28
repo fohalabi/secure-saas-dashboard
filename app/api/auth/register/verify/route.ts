@@ -49,20 +49,59 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Verify the registration response
-        const verification = await verifyRegistrationResponse({
+        console.log('=== WEBAUTHN VERIFICATION START ===')
+        console.log('Challenge from client:', challenge)
+        console.log('Credential response type:', credential.type)
+        console.log('Expected origin:', process.env.WEBAUTHN_RP_ORIGIN || 'http://localhost:3000')
+        console.log('Expected RPID:', process.env.WEBAUTHN_RP_ID || 'localhost')
+
+        let verification
+        try {
+          // Verify the registration response
+          verification = await verifyRegistrationResponse({
             response: credential,
             expectedChallenge: challenge,
             expectedOrigin: process.env.WEBAUTHN_RP_ORIGIN || 'http://localhost:3000',
             expectedRPID: process.env.WEBAUTHN_RP_ID || 'localhost',
-        })
+          })
+          
+          console.log('Verification result:', {
+            verified: verification.verified,
+            hasRegistrationInfo: !!verification.registrationInfo
+          })
+          
+          if (verification.registrationInfo) {
+            console.log('Registration info exists - verification successful')
+          } else {
+            console.log('No registration info available')
+          }
+          
+        } catch (verificationError) {
+          console.error('=== WEBAUTHN VERIFICATION ERROR ===')
+          console.error('Verification failed with error:', verificationError)
+          console.error('Error message:', verificationError instanceof Error ? verificationError.message : 'Unknown')
+          console.error('Error stack:', verificationError instanceof Error ? verificationError.stack : 'No stack')
+          console.error('=== END VERIFICATION ERROR ===')
+          
+          return NextResponse.json(
+            { error: `WebAuthn verification failed: ${verificationError instanceof Error ? verificationError.message : 'Unknown error'}` },
+            { status: 400 }
+          )
+        }
 
         if (!verification.verified || !verification.registrationInfo) {
-            return NextResponse.json(
-                { error: 'Registration verification failed' },
-                { status: 400 }
-            )
+          console.error('=== VERIFICATION FAILED ===')
+          console.error('Verified:', verification.verified)
+          console.error('Has registration info:', !!verification.registrationInfo)
+          console.error('=== END VERIFICATION FAILED ===')
+          
+          return NextResponse.json(
+            { error: 'Registration verification failed - credential not verified' },
+            { status: 400 }
+          )
         }
+
+        console.log('=== WEBAUTHN VERIFICATION SUCCESS ===')
 
         const registrationInfo = verification.registrationInfo
         const { publicKey, id, counter } = registrationInfo.credential
