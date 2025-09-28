@@ -18,6 +18,12 @@ function RegisterForm() {
     setError('');
 
     try {
+      console.log('=== STARTING REGISTRATION ===');
+      console.log('Email:', email);
+      console.log('Name:', name);
+      console.log('About to fetch challenge...');
+      
+
       // Step 1: Get registration challenge
       const challengeResponse = await fetch('/api/auth/register/challenge', {
         method: 'POST',
@@ -25,13 +31,18 @@ function RegisterForm() {
         body: JSON.stringify({ email, name }),
       });
 
+      console.log('Challenge response status:', challengeResponse.status);
+      console.log('Challenge response ok:', challengeResponse.ok);
+
       if (!challengeResponse.ok) {
-        const error = await challengeResponse.json();
-        throw new Error(error.error || 'Failed to get registration challenge');
+        const errorText = await challengeResponse.text();
+        console.error('Challenge response error:', errorText);
+        throw new Error(`Challenge failed: ${challengeResponse.status} - ${errorText}`);
       }
 
       const challenge = await challengeResponse.json();
-
+      console.log('Challenge received:', challenge ? 'Yes' : 'No');
+      
       // Step 2: Start WebAuthn registration
       const credential = await startRegistration(challenge);
 
