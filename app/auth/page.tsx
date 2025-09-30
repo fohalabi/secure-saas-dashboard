@@ -42,6 +42,8 @@ function RegisterForm() {
 
       const challenge = await challengeResponse.json();
       console.log('Challenge received:', challenge ? 'Yes' : 'No');
+      console.log('Challenge object keys:', Object.keys(challenge));
+      console.log('Challenge object:', JSON.stringify(challenge, null, 2));
       
       // Step 2: Start WebAuthn registration
       const credential = await startRegistration(challenge);
