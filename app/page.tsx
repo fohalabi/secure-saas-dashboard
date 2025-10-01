@@ -32,7 +32,6 @@ const HomePage: React.FC = () => {
     { 
       name: "Next.js", 
       logo: (
-        // @ts-ignore
         <svg className="w-12 h-12" viewBox="0 0 180 180" fill="none">
           <mask
             id="mask0"
@@ -41,7 +40,6 @@ const HomePage: React.FC = () => {
             y="0"
             width="180"
             height="180"
-            mask-type="alpha"
           >
             <circle cx="90" cy="90" r="90" fill="black" />
           </mask>
